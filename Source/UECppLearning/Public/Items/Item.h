@@ -8,6 +8,12 @@
 
 class USphereComponent;
 
+enum class EItemState : uint8
+{
+    EIS_Hovering,
+    EIS_Equipped
+};
+
 UCLASS()
 class UECPPLEARNING_API AItem : public AActor
 {
@@ -36,6 +42,9 @@ protected:
     UFUNCTION(BlueprintPure)
     float TransformCos();
 
+    UPROPERTY(VisibleAnywhere)
+    USphereComponent* Sphere;
+
     template<typename T>
     T Avg(T First, T Second);
 
@@ -47,12 +56,11 @@ protected:
 
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
     UStaticMeshComponent* ItemMesh;
+
+    EItemState ItemState = EItemState::EIS_Hovering;
 private:
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
     float RunningTime = 0.0f;
-
-    UPROPERTY(VisibleAnywhere)
-    USphereComponent* Sphere;
 };
 
 template<typename T>

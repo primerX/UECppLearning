@@ -7,6 +7,7 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GroomComponent.h"
 #include "Items/Weapons/Weapon.h"
+#include "Animation/AnimMontage.h"
 
 // Sets default values
 ASlashCharacter::ASlashCharacter()
@@ -61,10 +62,13 @@ void ASlashCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComp
 
     PlayerInputComponent->BindAction(FName("Jump"), IE_Pressed, this, &ACharacter::Jump);
     PlayerInputComponent->BindAction(FName("Equip"), IE_Pressed, this, &ASlashCharacter::EKeyPressed);
+    PlayerInputComponent->BindAction(FName("Attack"), IE_Pressed, this, &ASlashCharacter::Attack);
 }
 
 void ASlashCharacter::MoveForward(float Value)
 {
+    if (ActionState != EActionState::EAS_Unoccupied) return;
+
     if (Controller != nullptr && Value != 0.0f)
     {
         const FRotator rotation = Controller->GetControlRotation();
@@ -86,6 +90,8 @@ void ASlashCharacter::LookUp(float Value)
 
 void ASlashCharacter::MoveRight(float Value)
 {
+    if (ActionState != EActionState::EAS_Unoccupied) return;
+
     if (Controller != nullptr && Value != 0.0f)
     {
         const FRotator rotation = Controller->GetControlRotation();
@@ -102,5 +108,112 @@ void ASlashCharacter::EKeyPressed()
     {
         overlappingWeapon->Equip(GetMesh(), FName("RightHandSocket"));
         CharacterState = ECharacterState::ECS_EquippedOneHandedWeapon;
+        OverlappingItem = nullptr;
+        EquippedWeapon = overlappingWeapon;
+    }
+    else
+    {
+        if (CanDisarm())
+        {
+            PlayEquipMontage(FName("UnEquip"));
+            CharacterState = ECharacterState::ECS_UnEquipped;
+            ActionState = EActionState::EAS_EquippingWeapon;
+        }
+        else if (CanArm())
+        {
+            PlayEquipMontage(FName("Equip"));
+            CharacterState = ECharacterState::ECS_EquippedOneHandedWeapon;
+            ActionState = EActionState::EAS_EquippingWeapon;
+        }
     }
 }
+
+void ASlashCharacter::Attack()
+{
+    if (CanAttack())
+    {
+        PlayAttackMontage(AttackMontage);
+        ActionState = EActionState::EAS_Attacking;
+    }
+}
+
+bool ASlashCharacter::CanAttack()
+{
+    return ActionState == EActionState::EAS_Unoccupied &&
+        CharacterState != ECharacterState::ECS_UnEquipped;
+}
+
+void ASlashCharacter::AttackEnd()
+{
+    ActionState = EActionState::EAS_Unoccupied;
+}
+
+
+bool ASlashCharacter::CanDisarm()
+{
+    return ActionState == EActionState::EAS_Unoccupied &&
+        CharacterState != ECharacterState::ECS_UnEquipped;
+}
+
+bool ASlashCharacter::CanArm()
+{
+    return ActionState == EActionState::EAS_Unoccupied &&
+        CharacterState == ECharacterState::ECS_UnEquipped && 
+        EquippedWeapon != nullptr;
+}
+
+void ASlashCharacter::Disarm()
+{
+    if (EquippedWeapon)
+    {
+        EquippedWeapon->AttachMeshToSocket(GetMesh(), FName("SpineSocket"));
+    }
+}
+
+void ASlashCharacter::Arm()
+{
+    if (EquippedWeapon)
+    {
+        EquippedWeapon->AttachMeshToSocket(GetMesh(), FName("RightHandSocket"));
+    }
+}
+
+void ASlashCharacter::FinishEquipping()
+{
+    ActionState = EActionState::EAS_Unoccupied;
+}
+
+void ASlashCharacter::PlayEquipMontage(FName sectionName)
+{
+    auto AnimInstance = GetMesh()->GetAnimInstance();
+    if(AnimInstance && EquipMontage)
+    {
+        AnimInstance->Montage_Play(EquipMontage);
+        AnimInstance->Montage_JumpToSection(sectionName, EquipMontage);
+    }
+}
+
+
+void ASlashCharacter::PlayAttackMontage(UAnimMontage* Montage)
+{
+    auto AnimInstance = GetMesh()->GetAnimInstance();
+    if (AnimInstance && Montage)
+    {
+        AnimInstance->Montage_Play(Montage);
+        const int32 sectionCount = FMath::RandRange(0, 1);
+        FName sectionName = FName();
+        switch (sectionCount)
+        {
+        case 0:
+            sectionName = FName("Attack1");
+            break;
+        case 1:
+            sectionName = FName("Attack2");
+            break;
+        default:
+            break;
+        }
+        AnimInstance->Montage_JumpToSection(sectionName, AttackMontage);
+    }
+}
+

@@ -11,7 +11,8 @@ class USpringArmComponent;
 class UCameraComponent;
 class UGroomComponent;
 class AItem;
-
+class UAnimMontage;
+class AWeapon;
 
 UCLASS()
 class UECPPLEARNING_API ASlashCharacter : public ACharacter
@@ -25,14 +26,39 @@ public:
 
 protected:
 	virtual void BeginPlay() override;
+    
+    // Callbacks for input
     void MoveForward(float Value);
     void Turn(float Value);
     void LookUp(float Value);
     void MoveRight(float Value);
     void EKeyPressed();
+    void Attack();
 
+    // Play Montage Function
+    void PlayAttackMontage(UAnimMontage* Montage);
+    bool CanAttack();
+
+    UFUNCTION(BlueprintCallable)
+    void AttackEnd();
+
+    void PlayEquipMontage(FName sectionName);
+    bool CanDisarm();
+    bool CanArm();
+
+    UFUNCTION(BlueprintCallable)
+    void Disarm();
+
+    UFUNCTION(BlueprintCallable)
+    void Arm();
+
+    UFUNCTION(BlueprintCallable)
+    void FinishEquipping();
 private:
     ECharacterState CharacterState = ECharacterState::ECS_UnEquipped;
+
+    UPROPERTY(BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
+    EActionState ActionState = EActionState::EAS_Unoccupied;
 
     UPROPERTY(VisibleAnywhere)
     USpringArmComponent* CameraBoom;
@@ -48,6 +74,15 @@ private:
 
     UPROPERTY(VisibleInstanceOnly)
     AItem* OverlappingItem;
+
+    UPROPERTY(VisibleAnywhere, Category = "Weapon")
+    AWeapon* EquippedWeapon;
+
+    UPROPERTY(EditDefaultsOnly, Category = "Montages")
+    UAnimMontage* AttackMontage;
+
+    UPROPERTY(EditDefaultsOnly, Category = "Montages")
+    UAnimMontage* EquipMontage;
 
 public:
     FORCEINLINE void SetOverlappingItem(AItem* Item) {this->OverlappingItem = Item;}
