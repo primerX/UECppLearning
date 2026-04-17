@@ -27,6 +27,9 @@ public:
 protected:
 	virtual void BeginPlay() override;
     
+    UFUNCTION(BlueprintCallable)
+    void SetWeaponCollisionEnabled(ECollisionEnabled::Type CollisionEnabled);
+
     // Callbacks for input
     void MoveForward(float Value);
     void Turn(float Value);

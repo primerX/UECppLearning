@@ -8,6 +8,7 @@
 #include "GroomComponent.h"
 #include "Items/Weapons/Weapon.h"
 #include "Animation/AnimMontage.h"
+#include "Components/BoxComponent.h"
 
 // Sets default values
 ASlashCharacter::ASlashCharacter()
@@ -42,6 +43,15 @@ ASlashCharacter::ASlashCharacter()
 void ASlashCharacter::BeginPlay()
 {
 	Super::BeginPlay();	
+}
+
+void ASlashCharacter::SetWeaponCollisionEnabled(ECollisionEnabled::Type CollisionEnabled)
+{
+    if(EquippedWeapon && EquippedWeapon->GetWeaponBox())
+    {
+        EquippedWeapon->GetWeaponBox()->SetCollisionEnabled(CollisionEnabled);
+        EquippedWeapon->IgnoreActors.Empty();
+    }
 }
 
 // Called every frame
