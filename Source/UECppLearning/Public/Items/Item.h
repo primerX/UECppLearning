@@ -58,6 +58,9 @@ protected:
     UStaticMeshComponent* ItemMesh;
 
     EItemState ItemState = EItemState::EIS_Hovering;
+
+    UPROPERTY(VisibleAnywhere, Category = "Visual Effects")
+    class UNiagaraComponent* EmbersEffect;
 private:
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
     float RunningTime = 0.0f;
