@@ -16,45 +16,45 @@ class UAnimMontage;
 UCLASS()
 class UECPPLEARNING_API ASlashCharacter : public ABaseCharacter
 {
-	GENERATED_BODY()
+    GENERATED_BODY()
 
 public:
-	ASlashCharacter();
-    virtual void Tick(float DeltaTime) override;
+    ASlashCharacter();
     virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
-
+    virtual void GetHit_Implementation(const FVector& ImpactPoint) override;
 protected:
-	virtual void BeginPlay() override;
-    
+    virtual void BeginPlay() override;
 
-    // Callbacks for input
+    /** Callbacks for input	*/
     void MoveForward(float Value);
+    void MoveRight(float Value);
     void Turn(float Value);
     void LookUp(float Value);
-    void MoveRight(float Value);
     void EKeyPressed();
-    
     virtual void Attack() override;
+
+    /** Combat */
+    void EquipWeapon(AWeapon* Weapon);
     virtual void AttackEnd() override;
     virtual bool CanAttack() override;
-
-    void PlayEquipMontage(FName sectionName);
     bool CanDisarm();
     bool CanArm();
-
-    UFUNCTION(BlueprintCallable)
     void Disarm();
+    void Arm();
+    void PlayEquipMontage(const FName& SectionName);
 
     UFUNCTION(BlueprintCallable)
-    void Arm();
+    void AttachWeaponToBack();
+
+    UFUNCTION(BlueprintCallable)
+    void AttachWeaponToHand();
 
     UFUNCTION(BlueprintCallable)
     void FinishEquipping();
-private:
-    ECharacterState CharacterState = ECharacterState::ECS_UnEquipped;
 
-    UPROPERTY(BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
-    EActionState ActionState = EActionState::EAS_Unoccupied;
+private:
+
+    /** Character components */
 
     UPROPERTY(VisibleAnywhere)
     USpringArmComponent* CameraBoom;
@@ -62,19 +62,24 @@ private:
     UPROPERTY(VisibleAnywhere)
     UCameraComponent* ViewCamera;
 
-    UPROPERTY(VisibleAnywhere, Category = "Hair")
+    UPROPERTY(VisibleAnywhere, Category = Hair)
     UGroomComponent* Hair;
 
-    UPROPERTY(VisibleAnywhere, Category = "Hair")
+    UPROPERTY(VisibleAnywhere, Category = Hair)
     UGroomComponent* Eyebrows;
 
     UPROPERTY(VisibleInstanceOnly)
     AItem* OverlappingItem;
 
-    UPROPERTY(EditDefaultsOnly, Category = "Montages")
+    UPROPERTY(EditDefaultsOnly, Category = Montages)
     UAnimMontage* EquipMontage;
 
+    ECharacterState CharacterState = ECharacterState::ECS_UnEquipped;
+
+    UPROPERTY(BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
+    EActionState ActionState = EActionState::EAS_Unoccupied;
+
 public:
-    FORCEINLINE void SetOverlappingItem(AItem* Item) {this->OverlappingItem = Item;}
+    FORCEINLINE void SetOverlappingItem(AItem* Item) { OverlappingItem = Item; }
     FORCEINLINE ECharacterState GetCharacterState() const { return CharacterState; }
 };

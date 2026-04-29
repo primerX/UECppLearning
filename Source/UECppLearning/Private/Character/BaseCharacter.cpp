@@ -13,6 +13,7 @@ ABaseCharacter::ABaseCharacter()
     PrimaryActorTick.bCanEverTick = true;
 
     Attributes = CreateDefaultSubobject<UAttributeComponent>(TEXT("Attributes"));
+    GetCapsuleComponent()->SetCollisionResponseToChannel(ECollisionChannel::ECC_Camera, ECollisionResponse::ECR_Ignore);
 }
 
 void ABaseCharacter::BeginPlay()
@@ -81,23 +82,31 @@ void ABaseCharacter::DirectionalHitReact(const FVector& ImpactPoint)
 
 void ABaseCharacter::PlayHitSound(const FVector& ImpactPoint)
 {
-    if(HitSound)
+    if (HitSound)
     {
-        UGameplayStatics::PlaySoundAtLocation(this, HitSound, ImpactPoint);
+        UGameplayStatics::PlaySoundAtLocation(
+            this,
+            HitSound,
+            ImpactPoint
+        );
     }
 }
 
 void ABaseCharacter::SpawnHitParticles(const FVector& ImpactPoint)
 {
-    if(HitParticles)
+    if (HitParticles && GetWorld())
     {
-        UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), HitParticles, ImpactPoint);
+        UGameplayStatics::SpawnEmitterAtLocation(
+            GetWorld(),
+            HitParticles,
+            ImpactPoint
+        );
     }
 }
 
 void ABaseCharacter::HandleDamage(float DamageAmount)
 {
-    if(Attributes)
+    if (Attributes)
     {
         Attributes->ReceiveDamage(DamageAmount);
     }
@@ -116,10 +125,10 @@ void ABaseCharacter::PlayMontageSection(UAnimMontage* Montage, const FName& Sect
 int32 ABaseCharacter::PlayRandomMontageSection(UAnimMontage* Montage, const TArray<FName>& SectionNames)
 {
     if (SectionNames.Num() <= 0) return -1;
-    const int MaxSectionIndex = SectionNames.Num() - 1;
-    int SectionIndex = FMath::RandRange(0, MaxSectionIndex);
-    PlayMontageSection(Montage, SectionNames[SectionIndex]);
-    return SectionIndex;
+    const int32 MaxSectionIndex = SectionNames.Num() - 1;
+    const int32 Selection = FMath::RandRange(0, MaxSectionIndex);
+    PlayMontageSection(Montage, SectionNames[Selection]);
+    return Selection;
 }
 
 int32 ABaseCharacter::PlayAttackMontage()
