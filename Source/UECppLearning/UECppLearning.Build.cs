@@ -8,7 +8,8 @@ public class UECppLearning : ModuleRules
 	{
 		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
 	
-		PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "HairStrandsCore", "Niagara", "GeometryCollectionEngine", "UMG" });
+		PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "HairStrandsCore", 
+            "Niagara", "GeometryCollectionEngine", "UMG", "AIModule" });
 
 		PrivateDependencyModuleNames.AddRange(new string[] {  });
 

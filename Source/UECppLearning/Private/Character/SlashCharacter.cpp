@@ -43,15 +43,7 @@ ASlashCharacter::ASlashCharacter()
 void ASlashCharacter::BeginPlay()
 {
 	Super::BeginPlay();	
-}
-
-void ASlashCharacter::SetWeaponCollisionEnabled(ECollisionEnabled::Type CollisionEnabled)
-{
-    if(EquippedWeapon && EquippedWeapon->GetWeaponBox())
-    {
-        EquippedWeapon->GetWeaponBox()->SetCollisionEnabled(CollisionEnabled);
-        EquippedWeapon->IgnoreActors.Empty();
-    }
+    Tags.Add(FName("SlashCharacter"));
 }
 
 // Called every frame
@@ -142,7 +134,7 @@ void ASlashCharacter::Attack()
 {
     if (CanAttack())
     {
-        PlayAttackMontage(AttackMontage);
+        PlayAttackMontage();
         ActionState = EActionState::EAS_Attacking;
     }
 }
@@ -203,27 +195,4 @@ void ASlashCharacter::PlayEquipMontage(FName sectionName)
     }
 }
 
-
-void ASlashCharacter::PlayAttackMontage(UAnimMontage* Montage)
-{
-    auto AnimInstance = GetMesh()->GetAnimInstance();
-    if (AnimInstance && Montage)
-    {
-        AnimInstance->Montage_Play(Montage);
-        const int32 sectionCount = FMath::RandRange(0, 1);
-        FName sectionName = FName();
-        switch (sectionCount)
-        {
-        case 0:
-            sectionName = FName("Attack1");
-            break;
-        case 1:
-            sectionName = FName("Attack2");
-            break;
-        default:
-            break;
-        }
-        AnimInstance->Montage_JumpToSection(sectionName, AttackMontage);
-    }
-}
 
