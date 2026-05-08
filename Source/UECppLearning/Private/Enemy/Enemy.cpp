@@ -9,6 +9,7 @@
 #include "Components/AttributeComponent.h"
 #include "HUD/HealthBarComponent.h"
 #include "Items/Weapons/Weapon.h"
+#include "Items/Soul.h"
 
 AEnemy::AEnemy()
 {
@@ -103,6 +104,20 @@ void AEnemy::Die()
     SetLifeSpan(DeathLifeSpan);
     GetCharacterMovement()->bOrientRotationToMovement = false;
     SetWeaponCollisionEnabled(ECollisionEnabled::NoCollision);
+    SpawnSoul();
+}
+
+void AEnemy::SpawnSoul()
+{
+    UWorld* World = GetWorld();
+    if(World && SoulClass)
+    {
+        ASoul* SpawnedSoul = World->SpawnActor<ASoul>(SoulClass, GetActorLocation(), FRotator::ZeroRotator);
+        if (SpawnedSoul)
+        {
+            SpawnedSoul->SetSouls(Attributes->GetSouls()); // Set the number of souls, you can adjust this value as needed
+        }
+    }
 }
 
 void AEnemy::Attack()

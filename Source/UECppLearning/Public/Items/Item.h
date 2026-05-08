@@ -7,6 +7,8 @@
 #include "Item.generated.h"
 
 class USphereComponent;
+class UNiagaraComponent;
+class UNiagaraSystem;
 
 enum class EItemState : uint8
 {
@@ -54,13 +56,22 @@ protected:
     UFUNCTION()
     virtual void OnSphereEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
 
+    virtual void SpawnPickupSystem();
+    virtual void SpawnPickupSound();
+
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
     UStaticMeshComponent* ItemMesh;
 
     EItemState ItemState = EItemState::EIS_Hovering;
 
-    UPROPERTY(VisibleAnywhere, Category = "Visual Effects")
-    class UNiagaraComponent* EmbersEffect;
+    UPROPERTY(EditAnywhere)
+    UNiagaraComponent* ItemEffect;
+
+    UPROPERTY(EditAnywhere)
+    USoundBase* PickupSound;
+
+    UPROPERTY(EditAnywhere)
+    UNiagaraSystem* PickupEffect;
 private:
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
     float RunningTime = 0.0f;

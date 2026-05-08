@@ -4,8 +4,10 @@
 #include "Items/Item.h"
 #include "UECppLearning/DebugMacros.h"
 #include "Components/SphereComponent.h"
-#include "Character/SlashCharacter.h"
+#include "Interfaces/PickupInterface.h"
 #include "NiagaraComponent.h"
+#include "NiagaraFunctionLibrary.h"
+#include "Kismet/GameplayStatics.h"
 
 // Sets default values
 AItem::AItem()
@@ -21,8 +23,8 @@ AItem::AItem()
     Sphere = CreateDefaultSubobject<USphereComponent>(TEXT("Sphere"));
     Sphere->SetupAttachment(GetRootComponent());
 
-    EmbersEffect = CreateDefaultSubobject<UNiagaraComponent>(TEXT("EmbersEffect"));
-    EmbersEffect->SetupAttachment(GetRootComponent());
+    ItemEffect = CreateDefaultSubobject<UNiagaraComponent>(TEXT("EmbersEffect"));
+    ItemEffect->SetupAttachment(GetRootComponent());
 }
 
 // Called when the game starts or when spawned
@@ -47,18 +49,34 @@ float AItem::TransformCos()
 
 void AItem::OnSphereBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
-    ASlashCharacter* SlashCharacter = Cast<ASlashCharacter>(OtherActor);
-    if(SlashCharacter)
+    IPickupInterface* PickupInterface = Cast<IPickupInterface>(OtherActor);
+    if(PickupInterface)
     {
-        SlashCharacter->SetOverlappingItem(this);
+        PickupInterface->SetOverlappingItem(this);
     }
 }
 void AItem::OnSphereEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
 {
-    ASlashCharacter* SlashCharacter = Cast<ASlashCharacter>(OtherActor);
-    if (SlashCharacter)
+    IPickupInterface* PickupInterface = Cast<IPickupInterface>(OtherActor);
+    if (PickupInterface)
     {
-        SlashCharacter->SetOverlappingItem(nullptr);
+        PickupInterface->SetOverlappingItem(nullptr);
+    }
+}
+
+void AItem::SpawnPickupSystem()
+{
+    if(PickupEffect)
+    {
+        UNiagaraFunctionLibrary::SpawnSystemAtLocation(this, PickupEffect, GetActorLocation());
+    }
+}
+
+void AItem::SpawnPickupSound()
+{
+    if(PickupSound)
+    {
+        UGameplayStatics::PlaySoundAtLocation(this, PickupSound, GetActorLocation());
     }
 }
 
