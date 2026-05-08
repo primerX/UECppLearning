@@ -1,0 +1,10 @@
+{
+  "mcpServers": {
+    "enginelink": {
+      "command": "node",
+      "args": [
+        "c:\\Users\\xiaosb\\.cursor\\extensions\\enginelink.enginelink-0.1.1-universal\\dist\\mcp-server.js"
+      ]
+    }
+  }
+}

@@ -20,8 +20,8 @@ AEnemy::AEnemy()
     GetMesh()->SetGenerateOverlapEvents(true);
 
 
-    HealthBarWidget = CreateDefaultSubobject<UHealthBarComponent>(TEXT("HealthBar"));
-    HealthBarWidget->SetupAttachment(GetRootComponent());
+    HealthBarComponent = CreateDefaultSubobject<UHealthBarComponent>(TEXT("HealthBar"));
+    HealthBarComponent->SetupAttachment(GetRootComponent());
 
     GetCharacterMovement()->bOrientRotationToMovement = true;
     bUseControllerRotationPitch = false;
@@ -51,7 +51,16 @@ float AEnemy::TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AC
 {
     HandleDamage(DamageAmount);
     CombatTarget = EventInstigator->GetPawn();
-    ChaseTarget();
+    
+    if(IsInsideAttackRadius())
+    {
+        EnemyState = EEnemyState::EES_Attacking;
+    }
+    else if (IsOutsideAttackRadius())
+    {
+        ChaseTarget();
+    }
+
     return DamageAmount;
 }
 
@@ -63,17 +72,14 @@ void AEnemy::Destroyed()
     }
 }
 
-void AEnemy::GetHit_Implementation(const FVector& ImpactPoint)
+void AEnemy::GetHit_Implementation(const FVector& ImpactPoint, AActor* Hitter)
 {
-    ShowHealthBar();
-    if (IsAlive())
-    {
-        DirectionalHitReact(ImpactPoint);
-    }
-    else Die();
-
-    PlayHitSound(ImpactPoint);
-    SpawnHitParticles(ImpactPoint);
+    Super::GetHit_Implementation(ImpactPoint, Hitter);
+    if(!IsDead()) ShowHealthBar();
+    ClearPatrolTimer();
+    ClearAttackTimer();
+    SetWeaponCollisionEnabled(ECollisionEnabled::NoCollision);
+    StopAttackMontage();
 }
 
 void AEnemy::BeginPlay()
@@ -88,19 +94,23 @@ void AEnemy::BeginPlay()
 
 void AEnemy::Die()
 {
+    Super::Die();
     EnemyState = EEnemyState::EES_Dead;
-    PlayDeathMontage();
+
     ClearAttackTimer();
     HideHealthBar();
     DisableCapsule();
     SetLifeSpan(DeathLifeSpan);
     GetCharacterMovement()->bOrientRotationToMovement = false;
+    SetWeaponCollisionEnabled(ECollisionEnabled::NoCollision);
 }
 
 void AEnemy::Attack()
 {
-    EnemyState = EEnemyState::EES_Engaged;
     Super::Attack();
+    if (CombatTarget == nullptr) return;
+
+    EnemyState = EEnemyState::EES_Engaged;
     PlayAttackMontage();
 }
 
@@ -124,23 +134,12 @@ void AEnemy::HandleDamage(float DamageAmount)
 {
     Super::HandleDamage(DamageAmount);
 
-    if (Attributes && HealthBarWidget)
+    if (Attributes && HealthBarComponent)
     {
-        HealthBarWidget->SetHealthBarPercent(Attributes->GetHealthPercentage());
+        HealthBarComponent->SetHealthBarPercent(Attributes->GetHealthPercentage());
     }
 }
 
-int32 AEnemy::PlayDeathMontage()
-{
-    const int32 Selection = Super::PlayDeathMontage();
-    TEnumAsByte<EDeathPose> Pose(Selection);
-    if (Pose < EDeathPose::EDP_MAX)
-    {
-        DeathPose = Pose;
-    }
-
-    return Selection;
-}
 
 void AEnemy::InitializeEnemy()
 {
@@ -186,17 +185,17 @@ void AEnemy::PatrolTimerFinished()
 
 void AEnemy::HideHealthBar()
 {
-    if (HealthBarWidget)
+    if (HealthBarComponent)
     {
-        HealthBarWidget->SetVisibility(false);
+        HealthBarComponent->SetVisibility(false);
     }
 }
 
 void AEnemy::ShowHealthBar()
 {
-    if (HealthBarWidget)
+    if (HealthBarComponent)
     {
-        HealthBarWidget->SetVisibility(true);
+        HealthBarComponent->SetVisibility(true);
     }
 }
 

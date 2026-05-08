@@ -12,6 +12,7 @@ class UCameraComponent;
 class UGroomComponent;
 class AItem;
 class UAnimMontage;
+class USlashOverlay;
 
 UCLASS()
 class UECPPLEARNING_API ASlashCharacter : public ABaseCharacter
@@ -20,8 +21,10 @@ class UECPPLEARNING_API ASlashCharacter : public ABaseCharacter
 
 public:
     ASlashCharacter();
+    virtual void Jump() override;
     virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
-    virtual void GetHit_Implementation(const FVector& ImpactPoint) override;
+    virtual float TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent, class AController* EventInstigator, AActor* DamageCauser) override;
+    virtual void GetHit_Implementation(const FVector& ImpactPoint, AActor* Hitter) override;
 protected:
     virtual void BeginPlay() override;
 
@@ -42,6 +45,7 @@ protected:
     void Disarm();
     void Arm();
     void PlayEquipMontage(const FName& SectionName);
+    virtual void Die() override;
 
     UFUNCTION(BlueprintCallable)
     void AttachWeaponToBack();
@@ -52,8 +56,12 @@ protected:
     UFUNCTION(BlueprintCallable)
     void FinishEquipping();
 
+    UFUNCTION(BlueprintCallable)
+    void HitReactEnd();
 private:
-
+    bool IsUnoccupied();
+    void InitializeSlashOverlay();
+    void SetHUDHealth();
     /** Character components */
 
     UPROPERTY(VisibleAnywhere)
@@ -74,12 +82,16 @@ private:
     UPROPERTY(EditDefaultsOnly, Category = Montages)
     UAnimMontage* EquipMontage;
 
-    ECharacterState CharacterState = ECharacterState::ECS_UnEquipped;
+    ECharacterState CharacterState = ECharacterState::ECS_Unequipped;
 
     UPROPERTY(BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
     EActionState ActionState = EActionState::EAS_Unoccupied;
 
+    UPROPERTY()
+    USlashOverlay* SlashOverlay;
+
 public:
     FORCEINLINE void SetOverlappingItem(AItem* Item) { OverlappingItem = Item; }
     FORCEINLINE ECharacterState GetCharacterState() const { return CharacterState; }
+    FORCEINLINE EActionState GetActionState() const { return ActionState; }
 };
